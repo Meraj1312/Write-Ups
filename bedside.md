@@ -1,4 +1,4 @@
-# HTB Machine Write-up: Bedside
+# HTB Bedside
 
 ## Summary
 
