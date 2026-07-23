@@ -1,4 +1,4 @@
-# HTB VulnCicada Write-up
+# HTB: VulnCicada
 
 ## Summary
 
