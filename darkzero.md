@@ -1,4 +1,4 @@
-# HTB: DarkZero - Privilege Escalation via ADCS and RunAsCS
+# HTB: DarkZero
 
 ## Overview
 
