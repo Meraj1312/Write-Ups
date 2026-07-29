@@ -133,7 +133,7 @@ password: kIEnnfEKJ#9UmdO
 
 ### Hidden forum (sup3rs3cr3t.brainfuck.htb)
 
-Logging in with the leaked credentials on the hidden vhost reveals a forum. A post titled *"Orestis - Hacking for fun and profit"* in the general thread gives a known plaintext/ciphertext pair used to recover the Vigenère key protecting a second, encrypted post. Comparing the two yields the passphrase:
+Logging in with the leaked credentials on the hidden vhost reveals a forum. *"Orestis - Hacking for fun and profit"* in the general thread which was repeated several times gives a known plaintext/ciphertext pair used to recover the Vigenère key protecting a second, encrypted post. Comparing the two yields the passphrase:
 
 ```
 fuckmybrain
