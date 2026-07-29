@@ -241,7 +241,7 @@ python -c "print format(24604052029401386049980296953784287079059245867880966944
 6****<snip>********f
 ```
 
-This is the value contained in `root.txt` (flag omitted here).
+This is the value contained in `root.txt`.
 
 ---
 
