@@ -1,4 +1,4 @@
-# HTB: Magic — Writeup
+# HTB: Magic
 
 **Target IP:** 10.129.49.121
 **Attacker (Kali) IP:** 10.10.15.146
