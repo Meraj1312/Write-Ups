@@ -1,4 +1,4 @@
-# HTB: Intelligence — Writeup
+# HTB: Intelligence
 
 **Target IP:** 10.129.95.154
 **Attacker (Kali) IP:** 10.10.15.146
