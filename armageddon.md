@@ -1,4 +1,4 @@
-# HTB Armageddon — Writeup
+# HTB: Armageddon
 
 **Target IP:** 10.129.48.89
 **Attacker IP (Kali):** 10.10.15.146
