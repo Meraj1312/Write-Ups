@@ -468,6 +468,3 @@ root@sea:~/monitoring# cat /root/root.txt
 - [WonderCMS Official Site](https://wondercms.com/)
 - [SecLists Wordlists](https://github.com/danielmiessler/SecLists)
 
----
-
-*Write-up prepared by: TheCyberGeek*
