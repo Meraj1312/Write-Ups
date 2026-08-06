@@ -1,4 +1,4 @@
-# HTB Write-up: Beep
+# HTB: Beep
 
 **Difficulty:** Easy
 **OS:** Linux
