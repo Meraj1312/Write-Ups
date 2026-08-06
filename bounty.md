@@ -1,4 +1,4 @@
-# HTB Write-up: Bounty
+# HTB: Bounty
 
 **Difficulty:** Easy
 **OS:** Windows
