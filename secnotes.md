@@ -1,4 +1,4 @@
-# HTB Write-up: SecNotes
+# HTB: SecNotes
 
 **Difficulty:** Medium
 **OS:** Windows
