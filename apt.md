@@ -1,4 +1,4 @@
-# HTB Write-up: APT
+# HTB: APT
 
 **Difficulty:** Hard
 **OS:** Windows (Active Directory Domain Controller)
