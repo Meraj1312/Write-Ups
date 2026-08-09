@@ -1,4 +1,4 @@
-# HTB Write-up: Blocky
+# HTB: Blocky
 
 **Difficulty:** Easy
 **OS:** Linux
