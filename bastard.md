@@ -1,4 +1,4 @@
-# HTB Write-up: Bastard
+# HTB: Bastard
 
 **Difficulty:** Medium
 **OS:** Windows
