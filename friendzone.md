@@ -1,4 +1,4 @@
-# HTB Write-up: FriendZone
+# HTB: FriendZone
 
 **Difficulty:** Easy
 **OS:** Linux
@@ -106,7 +106,7 @@ Browsing them:
 - `hr.friendzone.red` and `uploads.friendzone.red` → both returned generic 404s.
 - `administrator1.friendzone.red` → returned actual content.
 
-> **Clarification:** the 404s on `hr` and `uploads` aren't necessarily "an internal thing" as speculated in the original notes — the far more likely explanation is that Apache simply has **no `<VirtualHost>` block configured** for those two names (only for `administrator1.friendzone.red`), so requests to them either hit Apache's default/catch-all vhost or a vhost with no matching content, both of which produce a 404. The subdomains may exist purely to be red herrings, or to be used later — nothing on this box suggests they're internally-restricted (e.g., no distinct IP, no auth prompt).
+> The 404s on `hr` and `uploads` most likely mean Apache has **no `<VirtualHost>` block configured** for those two names (only for `administrator1.friendzone.red`), so requests to them either hit Apache's default/catch-all vhost or a vhost with no matching content, both of which produce a 404. The subdomains may exist purely as red herrings, or to be used later — nothing on this box suggests they're internally-restricted (e.g., no distinct IP, no auth prompt).
 
 ---
 
@@ -165,7 +165,7 @@ Something went worng ! , the script include wrong param !
 Final Access timestamp is 1786627181
 ```
 
-> **Clarification on which parameter actually matters:** the page's own hint text is slightly misleading — it frames `image_id` as the "missing" parameter, but functionally it's a decoy. The parameter that actually controls server-side behavior is **`pagename`**. This was confirmed by directory brute-forcing (below), which found a real file called `timestamp.php` on disk — matching the default `pagename=timestamp` value exactly, and by the fact that the "Final Access timestamp" content only appears when `pagename=timestamp` is supplied. This strongly indicates the backend code does something along the lines of:
+> The page's own hint text frames `image_id` as the "missing" parameter, but functionally it's a decoy. The parameter that actually controls server-side behavior is **`pagename`**. This was confirmed by directory brute-forcing (below), which found a real file called `timestamp.php` on disk — matching the default `pagename=timestamp` value exactly, and by the fact that the "Final Access timestamp" content only appears when `pagename=timestamp` is supplied. This indicates the backend code does something along the lines of:
 >
 > ```php
 > include($_GET['pagename'] . ".php");
