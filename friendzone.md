@@ -1,4 +1,4 @@
-# HTB: FriendZone
+# HTB Write-up: FriendZone
 
 **Difficulty:** Easy
 **OS:** Linux
@@ -55,7 +55,7 @@ Key takeaways:
 - SMB signing is **not required** and guest/null auth is supported — worth revisiting.
 - The TLS certificate's Common Name — `friendzone.red` — discloses the real domain name used by the application, distinct from the raw IP.
 
-> **Correction on DNS reasoning:** the original notes assumed BIND running on TCP was itself unusual for a Linux host and used that as the trigger to test a zone transfer. This isn't accurate — DNS servers (BIND included, on any OS) commonly listen on **both TCP and UDP port 53** by design, since TCP is required for zone transfers and for any response too large to fit in a single UDP packet. There's nothing Linux-specific or unusual about it. The real reason to test `AXFR` here is simpler: **any exposed, apparently-authoritative DNS server is worth testing for a misconfigured zone transfer as a matter of routine recon**, regardless of the host OS — which is exactly what led to the useful discovery below.
+> DNS servers (BIND included) commonly listen on **both TCP and UDP port 53** by design, since TCP is required for zone transfers and for any response too large to fit in a single UDP packet. With port 53 open, testing for a misconfigured **AXFR** zone transfer is a routine recon step against any exposed, apparently-authoritative DNS server — which is exactly what led to the useful discovery below.
 
 ---
 
