@@ -103,10 +103,11 @@ The zone transfer succeeded — an unrestricted `AXFR` should never be permitted
 All three resolve to `127.0.0.1` in the zone data — meaning the actual routing between hostname and content happens at the **Apache virtual-host layer** on the box itself, not via distinct DNS records. Added all three to `/etc/hosts` pointing at the real target IP.
 
 Browsing them:
-- `hr.friendzone.red` and `uploads.friendzone.red` → both returned generic 404s.
+- `hr.friendzone.red` → returned a generic 404.
+- `uploads.friendzone.red` → a **Fake Uploads Site** — a decoy page styled as a file upload portal, with no real upload functionality behind it.
 - `administrator1.friendzone.red` → returned actual content.
 
-> The 404s on `hr` and `uploads` most likely mean Apache has **no `<VirtualHost>` block configured** for those two names (only for `administrator1.friendzone.red`), so requests to them either hit Apache's default/catch-all vhost or a vhost with no matching content, both of which produce a 404. The subdomains may exist purely as red herrings, or to be used later — nothing on this box suggests they're internally-restricted (e.g., no distinct IP, no auth prompt).
+> The 404 on `hr` most likely means Apache has **no `<VirtualHost>` block configured** for that name (only for `administrator1.friendzone.red` and `uploads.friendzone.red`), so requests to it either hit Apache's default/catch-all vhost or a vhost with no matching content. `uploads.friendzone.red` itself was a red herring rather than a real upload mechanism — nothing on this box suggests these subdomains are internally-restricted (e.g., no distinct IP, no auth prompt).
 
 ---
 
