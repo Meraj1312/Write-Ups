@@ -1,4 +1,4 @@
-# HTB Write-up: Chatterbox
+# HTB: Chatterbox
 
 **Difficulty:** Medium
 **OS:** Windows
