@@ -1,4 +1,4 @@
-# HTB: Delivery
+# HTB Write-up: Delivery
 
 **Difficulty:** Easy
 **OS:** Linux
@@ -14,17 +14,17 @@
 I started with a fast port sweep, then followed up with a detailed service scan.
 
 ```bash
-rustscan -a 10.129.63.118
+rustscan -a 10.129.63.136
 ```
 
 ```
-Open 10.129.63.118:22
-Open 10.129.63.118:80
-Open 10.129.63.118:8065
+Open 10.129.63.136:22
+Open 10.129.63.136:80
+Open 10.129.63.136:8065
 ```
 
 ```bash
-nmap -sCV -p22,80,8065 10.129.63.118 -oA nmap/nmap
+nmap -sCV -p22,80,8065 10.129.63.136 -oA nmap/nmap
 ```
 
 ```
@@ -47,7 +47,7 @@ I got SSH, a plain nginx site on 80, and a **Mattermost** instance (a Slack-styl
 ### 2.1 Port 80
 
 ```bash
-ffuf -u http://10.129.63.118/FUZZ \
+ffuf -u http://10.129.63.136/FUZZ \
   -w /usr/share/wordlists/SecLists/Discovery/Web-Content/DirBuster-2007_directory-list-lowercase-2.3-medium.txt \
   -e .php,.html,.cgi,.txt -mc 200,301,302,303,403 -fs 10850
 ```
