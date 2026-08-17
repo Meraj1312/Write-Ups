@@ -1,4 +1,4 @@
-# HTB Write-up: Mango
+# HTB: Mango
 
 **Difficulty:** Medium
 **OS:** Linux
