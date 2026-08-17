@@ -63,16 +63,7 @@ Browsing to `staging-order.mango.htb` over HTTP put me in front of a login page.
 
 ### 2.2 Finding the NoSQL Injection
 
-I tried MongoDB's `$ne` ("not equal") query operator in place of a literal password value:
-
-```bash
-curl -I http://staging-order.mango.htb/home.php
-```
-
-```
-HTTP/1.1 302 Found
-location: index.php
-```
+I tried MongoDB's `$ne` ("not equal") query operator in place of a literal password value and got redirected to:
 
 ```bash
 curl -I http://staging-order.mango.htb/home.php
@@ -512,52 +503,7 @@ find / -type f -perm -4000 -exec ls -l {} \; 2>/dev/null
 ```
 
 ```
--rwsr-xr-x 1 root root 30800 Aug 11  2016 /bin/fusermount
--rwsr-xr-x 1 root root 43088 Oct 15  2018 /bin/mount
--rwsr-xr-x 1 root root 26696 Oct 15  2018 /bin/umount
--rwsr-xr-x 1 root root 44664 Jan 25  2018 /bin/su
--rwsr-xr-x 1 root root 64424 Mar  9  2017 /bin/ping
--rwsr-xr-x 1 root root 40152 May 15  2019 /snap/core/7713/bin/mount
--rwsr-xr-x 1 root root 44168 May  7  2014 /snap/core/7713/bin/ping
--rwsr-xr-x 1 root root 44680 May  7  2014 /snap/core/7713/bin/ping6
--rwsr-xr-x 1 root root 40128 Mar 25  2019 /snap/core/7713/bin/su
--rwsr-xr-x 1 root root 27608 May 15  2019 /snap/core/7713/bin/umount
--rwsr-xr-x 1 root root 71824 Mar 25  2019 /snap/core/7713/usr/bin/chfn
--rwsr-xr-x 1 root root 40432 Mar 25  2019 /snap/core/7713/usr/bin/chsh
--rwsr-xr-x 1 root root 75304 Mar 25  2019 /snap/core/7713/usr/bin/gpasswd
--rwsr-xr-x 1 root root 39904 Mar 25  2019 /snap/core/7713/usr/bin/newgrp
--rwsr-xr-x 1 root root 54256 Mar 25  2019 /snap/core/7713/usr/bin/passwd
--rwsr-xr-x 1 root root 136808 Jun 10  2019 /snap/core/7713/usr/bin/sudo
--rwsr-xr-- 1 root systemd-resolve 42992 Jun 10  2019 /snap/core/7713/usr/lib/dbus-1.0/dbus-daemon-launch-helper
--rwsr-xr-x 1 root root 428240 Mar  4  2019 /snap/core/7713/usr/lib/openssh/ssh-keysign
--rwsr-sr-x 1 root root 106696 Aug 30  2019 /snap/core/7713/usr/lib/snapd/snap-confine
--rwsr-xr-- 1 root dip 394984 Jun 12  2018 /snap/core/7713/usr/sbin/pppd
--rwsr-xr-x 1 root root 40152 May 16  2018 /snap/core/6350/bin/mount
--rwsr-xr-x 1 root root 44168 May  7  2014 /snap/core/6350/bin/ping
--rwsr-xr-x 1 root root 44680 May  7  2014 /snap/core/6350/bin/ping6
--rwsr-xr-x 1 root root 40128 May 17  2017 /snap/core/6350/bin/su
--rwsr-xr-x 1 root root 27608 May 16  2018 /snap/core/6350/bin/umount
--rwsr-xr-x 1 root root 71824 May 17  2017 /snap/core/6350/usr/bin/chfn
--rwsr-xr-x 1 root root 40432 May 17  2017 /snap/core/6350/usr/bin/chsh
--rwsr-xr-x 1 root root 75304 May 17  2017 /snap/core/6350/usr/bin/gpasswd
--rwsr-xr-x 1 root root 39904 May 17  2017 /snap/core/6350/usr/bin/newgrp
--rwsr-xr-x 1 root root 54256 May 17  2017 /snap/core/6350/usr/bin/passwd
--rwsr-xr-x 1 root root 136808 Jul  4  2017 /snap/core/6350/usr/bin/sudo
--rwsr-xr-- 1 root systemd-resolve 42992 Jan 12  2017 /snap/core/6350/usr/lib/dbus-1.0/dbus-daemon-launch-helper
--rwsr-xr-x 1 root root 428240 Nov  5  2018 /snap/core/6350/usr/lib/openssh/ssh-keysign
--rwsr-sr-x 1 root root 98472 Jan 29  2019 /snap/core/6350/usr/lib/snapd/snap-confine
--rwsr-xr-- 1 root dip 394984 Jun 12  2018 /snap/core/6350/usr/sbin/pppd
--rwsr-xr-x 1 root root 37136 Jan 25  2018 /usr/bin/newuidmap
--rwsr-xr-x 1 root root 40344 Jan 25  2018 /usr/bin/newgrp
--rwsr-xr-x 1 root root 75824 Jan 25  2018 /usr/bin/gpasswd
--rwsr-xr-x 1 root root 59640 Jan 25  2018 /usr/bin/passwd
--rwsr-xr-x 1 root root 37136 Jan 25  2018 /usr/bin/newgidmap
--rwsr-sr-x 1 root root 18161 Jul 15  2016 /usr/bin/run-mailcap
--rwsr-xr-x 1 root root 76496 Jan 25  2018 /usr/bin/chfn
--rwsr-xr-x 1 root root 44528 Jan 25  2018 /usr/bin/chsh
--rwsr-xr-x 1 root root 149080 Jan 18  2018 /usr/bin/sudo
--rwsr-sr-x 1 daemon daemon 51464 Feb 20  2018 /usr/bin/at
--rwsr-xr-x 1 root root 18448 Mar  9  2017 /usr/bin/traceroute6.iputils
+....
 -rwsr-xr-x 1 root root 22520 Mar 27  2019 /usr/bin/pkexec
 -rwsr-xr-- 1 root messagebus 42992 Jun 10  2019 /usr/lib/dbus-1.0/dbus-daemon-launch-helper
 -rwsr-xr-x 1 root root 100760 Nov 23  2018 /usr/lib/x86_64-linux-gnu/lxc/lxc-user-nic
