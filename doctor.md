@@ -1,4 +1,4 @@
-# HTB Write-up: Doctor
+# HTB: Doctor
 
 **Difficulty:** Easy
 **OS:** Linux
