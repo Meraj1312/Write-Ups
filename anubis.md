@@ -1,4 +1,4 @@
-# HTB Write-up: Anubis
+# HTB: Anubis
 
 **Difficulty:** Hard
 **OS:** Windows (containerized web tier + external AD environment)
