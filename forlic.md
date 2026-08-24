@@ -1,4 +1,4 @@
-# HTB: Forlic
+# HTB: Frolic
 
 **Difficulty:** Easy
 **OS:** Linux
