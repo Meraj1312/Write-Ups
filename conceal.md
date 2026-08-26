@@ -1,10 +1,5 @@
 # HTB: Conceal
 
-**Difficulty:** Easy  
-**OS:** Windows  
-**Target IP:** 10.129.228.122  
-**Attacker IP:** 10.10.15.146  
-
 ## 1. Reconnaissance
 
 ### Port Scanning – TCP
