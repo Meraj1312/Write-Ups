@@ -44,7 +44,7 @@ iso.3.6.1.2.1.1.1.0 = STRING: "Hardware: AMD64 Family 25 Model 1 Stepping 1 AT/A
 iso.3.6.1.2.1.1.4.0 = STRING: "IKE VPN password PSK - 9C8B1A372B1878851BE2C097031B6E43"
 ```
 
-The SNMP system contact field leaked a sensitive credential: an IKE VPN Pre-Shared Key (PSK), which is an NTLM hash. I cracked this hash using an online NTLM hash decryption service (e.g., md5decrypt.net), revealing the plaintext password.
+The SNMP system contact field leaked a sensitive credential: an IKE VPN Pre-Shared Key (PSK), which is an NTLM hash. I cracked this hash using an online NTLM hash decryption service (md5decrypt.net), revealing the plaintext password.
 
 | Hash | Plaintext |
 |------|-----------|
