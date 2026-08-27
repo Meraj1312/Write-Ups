@@ -2,8 +2,6 @@
 
 **Difficulty:** Medium **OS:** Windows Server 2012 R2 **Target IP:** 10.129.95.188 **Attacker IP:** 10.10.15.146
 
-> Note: I reset the machine partway through this box, which changed the target IP to `10.129.73.80` for the remainder of the exploitation. I've kept `10.129.95.188` as the reference target IP throughout this write-up since that's what recon was performed against, but the later commands (webshell access onward) were run against the post-reset IP.
-
 ---
 
 ## 1. Reconnaissance
