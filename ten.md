@@ -1,6 +1,4 @@
 # HTB: Ten
-
-
 ---
 
 ## 1. Reconnaissance
