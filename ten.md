@@ -1,6 +1,5 @@
 # HTB: Ten
 
-**Difficulty:** Easy **OS:** Linux (Ubuntu) **Target IP:** 10.129.234.158 **Attacker IP:** 10.10.15.146
 
 ---
 
