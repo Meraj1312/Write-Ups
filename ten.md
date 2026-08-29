@@ -1,9 +1,7 @@
 # HTB: Ten
 
-**Difficulty:** Hard
-**OS:** Linux
-**Target IP:** 10.129.234.158
-**Attacker IP:** 10.10.15.146
+**Difficulty:** Hard **OS:** Linux (Ubuntu) **Target IP:** 10.129.234.158 **Attacker IP:** 10.10.15.146
+
 ---
 
 ## 1. Reconnaissance
